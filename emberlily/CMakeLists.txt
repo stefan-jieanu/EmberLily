@@ -1,12 +1,14 @@
-include(../envWindows.cmake OPTIONAL RESULT_VARIABLE LOCAL_ENV)
-message(STATUS "Local envWindows.cmake: ${LOCAL_ENV}")
+if (WIN32)
+  include(../envWindows.cmake OPTIONAL RESULT_VARIABLE LOCAL_ENV)
+  message(STATUS "Local envWindows.cmake: ${LOCAL_ENV}")
+endif()
  
 cmake_minimum_required(VERSION 3.11.0)
  
 set(NAME EmberLily)
 project(${NAME} VERSION 0.1.0)  
 
-# Set VULKAN_SDK_PATH in .env.cmake to target specific vulkan version
+# Find Vulkan
 if (DEFINED VULKAN_SDK_PATH)
   set(Vulkan_INCLUDE_DIRS "${VULKAN_SDK_PATH}/Include") # 1.1 Make sure this include path is correct
   set(Vulkan_LIBRARIES "${VULKAN_SDK_PATH}/Lib") # 1.2 Make sure lib path is correct
@@ -22,7 +24,7 @@ else()
     message(STATUS "Using vulkan lib at: ${Vulkan_LIBRARIES}")
 endif()
  
-# Set GLFW_PATH in .env.cmake to target specific glfw
+# Find GLFW
 if (DEFINED GLFW_PATH)
   message(STATUS "Using GLFW path specified in .env")
   set(GLFW_INCLUDE_DIRS "${GLFW_PATH}/include")
@@ -40,6 +42,24 @@ if (NOT GLFW_LIB)
 else()
     message(STATUS "Using glfw lib at: ${GLFW_LIB}")
 endif()
+
+# Find spdlog
+if (DEFINED SPDLOG_PATH)
+  message(STATUS "Using SPDLOG path specified in .env")
+  set(SPDLOG_INCLUDE_DIRS "${SPDLOG_PATH}/include")
+  if (MSVC)
+    set(SPDLOG_LIB "${SPDLOG_PATH}/build/Debug")
+  endif()
+else()
+  find_package(spdlog REQUIRED)
+  message(STATUS "Found SPDLOG")
+endif()
+
+if (NOT SPDLOG_LIB)
+    message(FATAL_ERROR "Could not find spdlog library!")
+else()
+    message(SPDLOG_LIB "Using spdlog lib at: ${SPDLOG_LIB}")
+endif()
  
 include_directories(external)
  
@@ -48,6 +68,10 @@ file(GLOB_RECURSE SRC_FILES ${PROJECT_SOURCE_DIR}/src/*.cpp)
 add_library(${PROJECT_NAME} ${SOURCES})
 target_sources(${PROJECT_NAME} PRIVATE ${SRC_FILES})
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
+
+# add_compile_definitions(EM_EXPORT)
+target_compile_definitions(${PROJECT_NAME} PRIVATE EM_EXPORT)
+target_compile_definitions(${PROJECT_NAME} PRIVATE EM_ENABLE_ASSERTS)
 
 if (CONFIG STREQUAL "Debug")
     message(STATUS "Creating debug build")
@@ -62,21 +86,23 @@ if (WIN32)
     ${PROJECT_SOURCE_DIR}/src
     ${Vulkan_INCLUDE_DIRS}
     ${GLFW_INCLUDE_DIRS}
+    ${SPDLOG_INCLUDE_DIRS}
     )
 
   target_link_directories(${PROJECT_NAME} PUBLIC
     ${Vulkan_LIBRARIES}
     ${GLFW_LIB}
+    ${SPDLOG_LIB}
   )
  
-  target_link_libraries(${PROJECT_NAME} glfw3 vulkan-1)
+  target_link_libraries(${PROJECT_NAME} glfw3 vulkan-1 spdlogd)
 elseif (UNIX)
     message(STATUS "CREATING BUILD FOR UNIX")
     target_include_directories(${PROJECT_NAME} PUBLIC
       ${PROJECT_SOURCE_DIR}/src
       ${TINYOBJ_PATH}
     )
-    target_link_libraries(${PROJECT_NAME} glfw ${Vulkan_LIBRARIES})
+    target_link_libraries(${PROJECT_NAME} glfw spdlog ${Vulkan_LIBRARIES})
 endif()
  
  

@@ -1,7 +1,8 @@
-#include <test.hpp>
+#include <EmberLily.hpp>
 
 int main()
 {
-    print_int(74);
-    checkglfw();
+    ember::Logger::Init();
+    LOG_DEBUG("Client log still works");
+    EM_ASSERT(1==0, "you bad at math");
 }

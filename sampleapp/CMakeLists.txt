@@ -40,6 +40,25 @@ if (NOT GLFW_LIB)
 else()
     message(STATUS "Using glfw lib at: ${GLFW_LIB}")
 endif()
+
+# Find spdlog
+if (DEFINED SPDLOG_PATH)
+  message(STATUS "Using SPDLOG path specified in .env")
+  set(SPDLOG_INCLUDE_DIRS "${SPDLOG_PATH}/include")
+  if (MSVC)
+    set(SPDLOG_LIB "${SPDLOG_PATH}/build/Debug")
+  endif()
+else()
+  find_package(spdlog REQUIRED)
+  set(SPDLOG_LIB spdlog)
+  message(STATUS "Found SPDLOG")
+endif()
+
+if (NOT SPDLOG_LIB)
+    message(FATAL_ERROR "Could not find spdlog library!")
+else()
+    message(SPDLOG_LIB "Using spdlog lib at: ${SPDLOG_LIB}")
+endif()
  
 include_directories(external)
 
@@ -48,6 +67,10 @@ file(GLOB_RECURSE SRC_FILES ${PROJECT_SOURCE_DIR}/src/*.cpp)
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_sources(${PROJECT_NAME} PRIVATE ${SRC_FILES})
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
+
+# add_compile_definitions(EM_IMPORT)
+target_compile_definitions(${PROJECT_NAME} PRIVATE EM_IMPORT)
+target_compile_definitions(${PROJECT_NAME} PRIVATE EM_ENABLE_ASSERTS)
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/build/debug")
 
@@ -58,21 +81,23 @@ if (WIN32)
     ${PROJECT_SOURCE_DIR}/src
     ${Vulkan_INCLUDE_DIRS}
     ${GLFW_INCLUDE_DIRS}
+    ${SPDLOG_INCLUDE_DIRS}
     "../emberlily/src"
     )
 
   target_link_directories(${PROJECT_NAME} PUBLIC
     ${Vulkan_LIBRARIES}
     ${GLFW_LIB}
+    ${SPDLOG_LIB}
     "../emberlily/build/vs2022/Debug"
   )
 
-  target_link_libraries(${PROJECT_NAME} glfw3 vulkan-1 EmberLily)
+  target_link_libraries(${PROJECT_NAME} glfw3 vulkan-1 spdlogd EmberLily)
 elseif (UNIX)
     message(STATUS "CREATING BUILD FOR UNIX")
     target_include_directories(${PROJECT_NAME} PUBLIC
       ${PROJECT_SOURCE_DIR}/src
       ${TINYOBJ_PATH}
     )
-    target_link_libraries(${PROJECT_NAME} glfw ${Vulkan_LIBRARIES})
+    target_link_libraries(${PROJECT_NAME} glfw spdlog ${Vulkan_LIBRARIES})
 endif()
