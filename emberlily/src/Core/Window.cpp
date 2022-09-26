@@ -32,6 +32,37 @@ Window::Window(const std::string& title, int width, int height)
     glfwMakeContextCurrent(window_);
     glfwSetWindowUserPointer(window_, &data_);
     setVSync(true);
+
+    // Set GLFW callbacks
+    glfwSetWindowSizeCallback(window_, [](GLFWwindow* window, int width, int height)
+    {
+        WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+    });
+
+    glfwSetWindowCloseCallback(window_, [](GLFWwindow* window)
+    {
+        WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+    });
+
+    glfwSetKeyCallback(window_, [](GLFWwindow* window, int key, int scancode, int action, int modes)
+    {
+        WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+    });
+
+    glfwSetMouseButtonCallback(window_, [](GLFWwindow* window, int button, int action, int modes)
+    {
+        WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+    });
+
+    glfwSetScrollCallback(window_, [](GLFWwindow* window, double xOffset, double yOffset)
+    {
+        WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+    });
+
+    glfwSetCursorPosCallback(window_, [](GLFWwindow* window, double xPos, double yPos)
+    {
+        WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+    });
 }
 
 Window::~Window()

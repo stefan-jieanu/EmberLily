@@ -25,6 +25,7 @@ public:
 
     inline unsigned int getWidth() const { return data_.width; }
     inline unsigned int getHeight() const { return data_.height; }
+    inline int shouldWindowClose() const { return glfwWindowShouldClose(window_); }
 
     // Window attributes
     // virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
