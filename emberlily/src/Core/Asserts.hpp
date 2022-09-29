@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Logger.hpp"
 
 #ifdef EM_ENABLE_ASSERTS

@@ -1,6 +1,7 @@
 if (WIN32)
   include(../envWindows.cmake OPTIONAL RESULT_VARIABLE LOCAL_ENV)
   message(STATUS "Local envWindows.cmake: ${LOCAL_ENV}")
+  set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS 0)
 endif()
  
 cmake_minimum_required(VERSION 3.11.0)
@@ -60,12 +61,12 @@ if (NOT SPDLOG_LIB)
 else()
     message(SPDLOG_LIB "Using spdlog lib at: ${SPDLOG_LIB}")
 endif()
- 
+
 include_directories(external)
  
 file(GLOB_RECURSE SRC_FILES ${PROJECT_SOURCE_DIR}/src/*.cpp)
  
-add_library(${PROJECT_NAME} ${SOURCES})
+add_library(${PROJECT_NAME} src/EmberLily.hpp)
 target_sources(${PROJECT_NAME} PRIVATE ${SRC_FILES})
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
 
@@ -81,7 +82,7 @@ endif()
  
 if (WIN32)
   message(STATUS "CREATING BUILD FOR WINDOWS")
- 
+
   target_include_directories(${PROJECT_NAME} PUBLIC
     ${PROJECT_SOURCE_DIR}/src
     ${Vulkan_INCLUDE_DIRS}

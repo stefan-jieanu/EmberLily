@@ -40,6 +40,7 @@ public:
 private:
     static std::shared_ptr<spdlog::logger> logger;
     static std::shared_ptr<spdlog::logger> coreLogger;
+    static bool initialized;
 };
 
 } // namespace ember

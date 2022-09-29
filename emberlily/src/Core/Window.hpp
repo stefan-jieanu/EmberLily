@@ -5,6 +5,7 @@
 
 #include <GLFW/glfw3.h>
 #include "Asserts.hpp"
+#include "Defines.hpp"
 
 namespace ember
 {
@@ -13,8 +14,8 @@ class Window
 {
 public:
     // using EventCallbackFn = std::function<void(Event&)>;
-
-    Window(const std::string& title="EmberLily", int width = 1280, int height = 720);
+    Window() {}
+    Window(const std::string& title, int width, int height);
     ~Window(); 
 
     // Delete copy constructor and copy operator

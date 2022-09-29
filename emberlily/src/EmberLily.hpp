@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Core/Asserts.hpp"
-#include "Core/Window.hpp"
+#include "Core/Application.hpp"
 
 // Disable engine logger for client app
 #undef EM_LOG_TRACE
