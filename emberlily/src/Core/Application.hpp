@@ -5,6 +5,10 @@
 #include "Asserts.hpp"
 #include "Defines.hpp"
 #include "Window.hpp"
+#include "Events/ApplicationEvent.hpp"
+#include "Events/KeyEvent.hpp"
+#include "Events/MouseEvent.hpp"
+
 
 namespace ember
 {
@@ -31,9 +35,22 @@ public:
     ~Application();
 
     void Run();
+    // Event handling callbacks
+    void OnEvent(Event& e);
+    virtual bool OnWindowClose(WindowCloseEvent& e);
+    virtual bool OnWindowResize(WindowResizeEvent& e);
+    virtual bool OnKeyPressed(KeyPressedEvent& e);
+    virtual bool OnKeyRepeat(KeyRepeatEvent& e);
+    virtual bool OnKeyReleased(KeyReleasedEvent& e);
+    virtual bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
+    virtual bool OnMouseButtonReleased(MouseButtonReleasedEvent& e);
+    virtual bool OnMouseMoved(MouseMovedEvent& e);
+    virtual bool OnMouseScrolled(MouseScrolledEvent& e);
 
 private:
     static bool initialized;
+
+    bool minimized_;
 
     ApplicationConfig config_;
     ApplicationState state_;

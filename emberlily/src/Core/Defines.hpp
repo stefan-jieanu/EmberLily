@@ -27,3 +27,5 @@
         #define EM_API
     #endif
 #endif
+
+#define BIT(x) (1 << x)

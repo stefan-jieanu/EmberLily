@@ -1,5 +1,9 @@
 #include "Window.hpp"
 
+#include "Events/ApplicationEvent.hpp"
+#include "Events/KeyEvent.hpp"
+#include "Events/MouseEvent.hpp"
+
 namespace ember
 {
 
@@ -37,31 +41,84 @@ Window::Window(const std::string& title, int width, int height)
     glfwSetWindowSizeCallback(window_, [](GLFWwindow* window, int width, int height)
     {
         WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+
+        data.width = width;
+        data.height = height;
+
+        WindowResizeEvent event(width, height);
+        data.eventCallback(event);
     });
 
     glfwSetWindowCloseCallback(window_, [](GLFWwindow* window)
     {
         WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+
+        WindowCloseEvent event;
+        data.eventCallback(event);
     });
 
     glfwSetKeyCallback(window_, [](GLFWwindow* window, int key, int scancode, int action, int modes)
     {
         WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+
+        switch (action)
+        {
+        case GLFW_PRESS:
+        {
+            KeyPressedEvent event((KeyCode)key);
+            data.eventCallback(event);
+            break;
+        }
+        case GLFW_RELEASE:
+        {
+            KeyReleasedEvent event((KeyCode)key);
+            data.eventCallback(event);
+            break;
+        }
+        case GLFW_REPEAT:
+        {
+            KeyRepeatEvent event((KeyCode)key);
+            data.eventCallback(event);
+            break;
+        }
+        }
     });
 
     glfwSetMouseButtonCallback(window_, [](GLFWwindow* window, int button, int action, int modes)
     {
         WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+
+        switch (action)
+        {
+        case GLFW_PRESS:
+        {
+            MouseButtonPressedEvent event(button);
+            data.eventCallback(event);
+            break;
+        }
+        case GLFW_RELEASE:
+        {
+            MouseButtonReleasedEvent event(button);
+            data.eventCallback(event);
+            break;
+        }
+        }
     });
 
     glfwSetScrollCallback(window_, [](GLFWwindow* window, double xOffset, double yOffset)
     {
         WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+
+        MouseScrolledEvent event((float)xOffset, (float)yOffset);
+        data.eventCallback(event);
     });
 
     glfwSetCursorPosCallback(window_, [](GLFWwindow* window, double xPos, double yPos)
     {
         WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+
+        MouseMovedEvent event((float)xPos, (float)yPos);
+        data.eventCallback(event);
     });
 }
 

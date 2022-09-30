@@ -6,6 +6,7 @@
 #include <GLFW/glfw3.h>
 #include "Asserts.hpp"
 #include "Defines.hpp"
+#include "Events/Event.hpp"
 
 namespace ember
 {
@@ -13,7 +14,7 @@ namespace ember
 class Window
 {
 public:
-    // using EventCallbackFn = std::function<void(Event&)>;
+    using EventCallbackFn = std::function<void(Event&)>;
     Window() {}
     Window(const std::string& title, int width, int height);
     ~Window(); 
@@ -29,7 +30,7 @@ public:
     inline int shouldWindowClose() const { return glfwWindowShouldClose(window_); }
 
     // Window attributes
-    // virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
+    inline void SetEventCallback(const EventCallbackFn& callback) { data_.eventCallback = callback; }
     void setVSync(bool enabled);
     inline bool isVSync() const { return data_.VSync; }
 
@@ -41,6 +42,8 @@ private:
         std::string title;
         unsigned int width, height;
         bool VSync;
+
+        EventCallbackFn eventCallback;
     } data_;
 
     GLFWwindow* window_;
