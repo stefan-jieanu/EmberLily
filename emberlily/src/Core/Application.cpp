@@ -98,25 +98,21 @@ bool Application::OnKeyReleased(KeyReleasedEvent& e)
 
 bool Application::OnMouseButtonPressed(MouseButtonPressedEvent& e)
 {
-    EM_LOG_TRACE("Pressed mosue: {}", e.GetMouseButton());
     return false;
 }
 
 bool Application::OnMouseButtonReleased(MouseButtonReleasedEvent& e)
 {
-    EM_LOG_TRACE("Released mosue: {}", e.GetMouseButton());
     return false;
 }
 
 bool Application::OnMouseMoved(MouseMovedEvent& e)
 {
-    EM_LOG_TRACE("Moue moved: {},{}", e.GetX(), e.GetY());
     return false;
 }
 
 bool Application::OnMouseScrolled(MouseScrolledEvent& e)
 {
-    EM_LOG_TRACE("Scrolled mosue: {}, {}", e.GetXOffset(), e.GetYOffset());
     return false;
 }
 
