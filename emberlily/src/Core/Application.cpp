@@ -1,5 +1,8 @@
 #include "Application.hpp"
 
+#include "Vulkan/LlyDevice.hpp"
+#include "Vulkan/LlyPipeline.hpp"
+
 namespace ember
 {
 
@@ -21,10 +24,18 @@ Application::Application(const ApplicationConfig& config)
     state_.isRunning = true;
     state_.isSuspended = false;
 
-    window_ = std::make_unique<Window>(config_.title, config_.width, config_.height);
+    window_ = std::make_shared<LlyWindow>(config_.title, config_.width, config_.height);
     window_->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
 
     Application::initialized = true;
+
+    LlyDevice device{window_};
+
+    LlyPipeline pip = LlyPipeline(
+        device,
+        LlyPipeline::defaultPipelineConfigInfo(config_.width, config_.height),
+        "../../../../shaders/bin/simple_shader.vert.spv", 
+        "../../../../shaders/bin/simple_shader.frag.spv");
 }
 
 Application::~Application()

@@ -1,4 +1,4 @@
-#include "Window.hpp"
+#include "LlyWindow.hpp"
 
 #include "Events/ApplicationEvent.hpp"
 #include "Events/KeyEvent.hpp"
@@ -12,7 +12,7 @@ static void GLFWErrorCallback(int error, const char* description)
     EM_LOG_ERROR("GLFW error ({0}): {1}", error, description);
 }
 
-Window::Window(const std::string& title, int width, int height)
+LlyWindow::LlyWindow(const std::string& title, int width, int height)
 {
     data_.title = title;
     data_.width = width;
@@ -33,9 +33,9 @@ Window::Window(const std::string& title, int width, int height)
         data_.title.c_str(), 
         nullptr, nullptr);
 
-    glfwMakeContextCurrent(window_);
+    // glfwMakeContextCurrent(window_);
     glfwSetWindowUserPointer(window_, &data_);
-    setVSync(true);
+    // setVSync(true);
 
     // Set GLFW callbacks
     glfwSetWindowSizeCallback(window_, [](GLFWwindow* window, int width, int height)
@@ -122,19 +122,19 @@ Window::Window(const std::string& title, int width, int height)
     });
 }
 
-Window::~Window()
+LlyWindow::~LlyWindow()
 {
     glfwDestroyWindow(window_);
     glfwTerminate();
 }
 
-void Window::update()
+void LlyWindow::update()
 {
     glfwPollEvents();
     // glfwSwapBuffers(window_);
 }
 
-void Window::setVSync(bool enabled)
+void LlyWindow::setVSync(bool enabled)
 {
     if (enabled)
         glfwSwapInterval(1);
@@ -142,6 +142,16 @@ void Window::setVSync(bool enabled)
         glfwSwapInterval(0);
 
     data_.VSync = enabled;
+}
+
+void LlyWindow::createWindowSurface(VkInstance instance, VkSurfaceKHR *surface)
+{
+    VkResult ok = glfwCreateWindowSurface(instance, window_, nullptr, surface);
+
+    EM_CORE_ASSERT(
+        ok == VK_SUCCESS,
+        "Unable to create vulkan surface for GLFW window!"
+    );
 }
 
 } // namespace ember

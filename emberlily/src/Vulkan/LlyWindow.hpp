@@ -3,25 +3,26 @@
 #include <string>
 #include <functional>
 
+#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
-#include "Asserts.hpp"
-#include "Defines.hpp"
+#include "Core/Asserts.hpp"
+#include "Core/Defines.hpp"
 #include "Events/Event.hpp"
 
 namespace ember
 {
 
-class Window
+class LlyWindow
 {
 public:
     using EventCallbackFn = std::function<void(Event&)>;
-    Window() {}
-    Window(const std::string& title, int width, int height);
-    ~Window(); 
+    LlyWindow() {}
+    LlyWindow(const std::string& title, int width, int height);
+    ~LlyWindow(); 
 
     // Delete copy constructor and copy operator
-    Window(const Window&) = delete;
-    Window& operator=(const Window&) = delete;
+    LlyWindow(const LlyWindow&) = delete;
+    LlyWindow& operator=(const LlyWindow&) = delete;
 
     void update();
 
@@ -35,6 +36,7 @@ public:
     inline bool isVSync() const { return data_.VSync; }
 
     void* getNativeWindow() const;
+    void createWindowSurface(VkInstance instance, VkSurfaceKHR *surface);
 
 private:
     struct WindowData

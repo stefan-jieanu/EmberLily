@@ -4,11 +4,10 @@
 #include <string>
 #include "Asserts.hpp"
 #include "Defines.hpp"
-#include "Window.hpp"
+#include "Vulkan/LlyWindow.hpp"
 #include "Events/ApplicationEvent.hpp"
 #include "Events/KeyEvent.hpp"
 #include "Events/MouseEvent.hpp"
-
 
 namespace ember
 {
@@ -54,7 +53,7 @@ private:
 
     ApplicationConfig config_;
     ApplicationState state_;
-    std::unique_ptr<Window> window_;
+    std::shared_ptr<LlyWindow> window_;
 };
 
 } // namespace ember
