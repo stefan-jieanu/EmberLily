@@ -36,9 +36,9 @@ class LlyDevice {
 
   // Not copyable or movable
   LlyDevice(const LlyDevice &) = delete;
-  void operator=(const LlyDevice &) = delete;
+  LlyDevice& operator=(const LlyDevice &) = delete;
   LlyDevice(LlyDevice &&) = delete;
-  LlyDevice &operator=(LlyDevice &&) = delete;
+  LlyDevice& operator=(LlyDevice &&) = delete;
 
   VkCommandPool getCommandPool() { return commandPool; }
   VkDevice device() { return device_; }

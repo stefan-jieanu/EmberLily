@@ -29,6 +29,9 @@ public:
     inline unsigned int getWidth() const { return data_.width; }
     inline unsigned int getHeight() const { return data_.height; }
     inline int shouldWindowClose() const { return glfwWindowShouldClose(window_); }
+    inline VkExtent2D getExtent() const { 
+        return {static_cast<uint32_t>(data_.width), static_cast<uint32_t>(data_.height)};
+    }
 
     // Window attributes
     inline void SetEventCallback(const EventCallbackFn& callback) { data_.eventCallback = callback; }

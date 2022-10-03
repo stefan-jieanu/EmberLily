@@ -1,8 +1,5 @@
 #include "Application.hpp"
 
-#include "Vulkan/LlyDevice.hpp"
-#include "Vulkan/LlyPipeline.hpp"
-
 namespace ember
 {
 
@@ -29,18 +26,17 @@ Application::Application(const ApplicationConfig& config)
 
     Application::initialized = true;
 
-    LlyDevice device{window_};
+    device_ = std::make_shared<LlyDevice>(window_);
+    swapChain_ = std::make_shared<LlySwapChain>(device_, window_->getExtent());
 
-    LlyPipeline pip = LlyPipeline(
-        device,
-        LlyPipeline::defaultPipelineConfigInfo(config_.width, config_.height),
-        "../../../../shaders/bin/simple_shader.vert.spv", 
-        "../../../../shaders/bin/simple_shader.frag.spv");
+    createPipelineLayout();
+    createPipeline();
+    createCommandBuffers();
 }
 
 Application::~Application()
 {
-
+    vkDestroyPipelineLayout(device_->device(), pipelineLayout_, nullptr);
 }
 
 void Application::Run()
@@ -50,7 +46,10 @@ void Application::Run()
         state_.isRunning = !window_->shouldWindowClose();
 
         window_->update();
+        drawFrame();
     }
+
+    vkDeviceWaitIdle(device_->device());
 
     // Explicitly set it to false here too in case it's set 
     // in another part of the application 
@@ -125,6 +124,91 @@ bool Application::OnMouseMoved(MouseMovedEvent& e)
 bool Application::OnMouseScrolled(MouseScrolledEvent& e)
 {
     return false;
+}
+
+void Application::createPipelineLayout()
+{
+    VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+    pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    pipelineLayoutInfo.setLayoutCount = 0;
+    pipelineLayoutInfo.pSetLayouts = nullptr;
+    pipelineLayoutInfo.pushConstantRangeCount = 0;
+    pipelineLayoutInfo.pPushConstantRanges = nullptr;
+
+    VkResult ok = vkCreatePipelineLayout(device_->device(), &pipelineLayoutInfo, nullptr, &pipelineLayout_);
+    EM_CORE_ASSERT(ok == VK_SUCCESS, "Could not create pipeline layout!");
+}
+
+void Application::createPipeline()
+{
+    PipelineConfigInfo configInfo{};
+
+    LlyPipeline::defaultPipelineConfigInfo(swapChain_->width(), swapChain_->height(), configInfo);
+
+    configInfo.renderPass = swapChain_->getRenderPass();
+    configInfo.pipelineLayout = pipelineLayout_;
+    pipeline_ = std::make_shared<LlyPipeline>(
+        device_,
+        configInfo,
+        "../../../../shaders/bin/simple_shader.vert.spv", 
+        "../../../../shaders/bin/simple_shader.frag.spv");
+}
+
+void Application::createCommandBuffers()
+{
+    commandBuffers_.resize(swapChain_->imageCount());
+
+    VkCommandBufferAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandPool = device_->getCommandPool();
+    allocInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers_.size());
+
+    VkResult ok = vkAllocateCommandBuffers(device_->device(), &allocInfo, commandBuffers_.data());
+    EM_CORE_ASSERT(ok == VK_SUCCESS, "Couldn't create command buffer!");
+
+    for (int i = 0; i < commandBuffers_.size(); i++) {
+        VkCommandBufferBeginInfo beginInfo{};
+        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+
+        ok = vkBeginCommandBuffer(commandBuffers_[i], &beginInfo);
+        EM_CORE_ASSERT(ok == VK_SUCCESS, "Failed to begin recording command buffer!");
+
+        VkRenderPassBeginInfo renderPassInfo{};
+        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        renderPassInfo.renderPass = swapChain_->getRenderPass();
+        renderPassInfo.framebuffer = swapChain_->getFrameBuffer(i);
+
+        renderPassInfo.renderArea.offset = {0, 0};
+        renderPassInfo.renderArea.extent = swapChain_->getSwapChainExtent();
+
+        std::array<VkClearValue, 2> clearValues{};
+        clearValues[0].color = {0.1f, 0.1f, 0.1f, 0.1f};
+        clearValues[1].depthStencil = {1.0f, 0};
+
+        renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+        renderPassInfo.pClearValues = clearValues.data();
+
+        vkCmdBeginRenderPass(commandBuffers_[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+        pipeline_->bind(commandBuffers_[i]);
+        vkCmdDraw(commandBuffers_[i], 3, 1, 0, 0);
+
+        vkCmdEndRenderPass(commandBuffers_[i]);
+
+        ok = vkEndCommandBuffer(commandBuffers_[i]);
+        EM_CORE_ASSERT(ok == VK_SUCCESS, "Failed to end recording command buffer!");
+    }
+}
+
+void Application::drawFrame()
+{
+    uint32_t imageIndex;
+    auto result = swapChain_->acquireNextImage(&imageIndex);
+    EM_CORE_ASSERT((result != VK_SUCCESS || result != VK_SUBOPTIMAL_KHR), "Not good aquire next image from swap chain");
+
+    result = swapChain_->submitCommandBuffers(&commandBuffers_[imageIndex], &imageIndex);
+    EM_CORE_ASSERT(result == VK_SUCCESS, "Failed to sbumit command buffer");
 }
 
 } // namespace ember

@@ -4,7 +4,7 @@ if (WIN32)
   set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS 0)
 endif()
  
-cmake_minimum_required(VERSION 3.11.0)
+cmake_minimum_required(VERSION 3.20.0)
  
 set(NAME EmberLily)
 project(${NAME} VERSION 0.1.0)  

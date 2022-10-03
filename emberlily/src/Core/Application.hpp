@@ -8,6 +8,9 @@
 #include "Events/ApplicationEvent.hpp"
 #include "Events/KeyEvent.hpp"
 #include "Events/MouseEvent.hpp"
+#include "Vulkan/LlyDevice.hpp"
+#include "Vulkan/LlyPipeline.hpp"
+#include "Vulkan/LlySwapChain.hpp"
 
 namespace ember
 {
@@ -49,11 +52,21 @@ public:
 private:
     static bool initialized;
 
+    void createPipelineLayout();
+    void createPipeline();
+    void createCommandBuffers();
+    void drawFrame();
+
     bool minimized_;
 
     ApplicationConfig config_;
     ApplicationState state_;
     std::shared_ptr<LlyWindow> window_;
+    std::shared_ptr<LlyDevice> device_;
+    std::shared_ptr<LlySwapChain> swapChain_;
+    std::shared_ptr<LlyPipeline> pipeline_;
+    VkPipelineLayout pipelineLayout_;
+    std::vector<VkCommandBuffer> commandBuffers_;
 };
 
 } // namespace ember
