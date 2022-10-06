@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "LlyDevice.hpp"
+#include "LlyModel.hpp"
 
 namespace ember
 {

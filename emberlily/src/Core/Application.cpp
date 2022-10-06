@@ -29,13 +29,10 @@ Application::Application(const ApplicationConfig& config)
     device_ = std::make_shared<LlyDevice>(window_);
     swapChain_ = std::make_shared<LlySwapChain>(device_, window_->getExtent());
 
+    loadModels();
     createPipelineLayout();
     createPipeline();
     createCommandBuffers();
-
-    // Test glm
-    glm::mat2x2 myMat;
-    EM_LOG_INFO(myMat.length());
 }
 
 Application::~Application()
@@ -130,6 +127,17 @@ bool Application::OnMouseScrolled(MouseScrolledEvent& e)
     return false;
 }
 
+void Application::loadModels()
+{
+    std::vector<LlyModel::Vertex> vertices {
+        {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+        {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+        {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+    };
+
+    model_ = std::make_unique<LlyModel>(device_, vertices);
+}
+
 void Application::createPipelineLayout()
 {
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
@@ -196,7 +204,9 @@ void Application::createCommandBuffers()
         vkCmdBeginRenderPass(commandBuffers_[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
         pipeline_->bind(commandBuffers_[i]);
-        vkCmdDraw(commandBuffers_[i], 3, 1, 0, 0);
+        // vkCmdDraw(commandBuffers_[i], 3, 1, 0, 0);
+        model_->bind(commandBuffers_[i]);
+        model_->draw(commandBuffers_[i]);
 
         vkCmdEndRenderPass(commandBuffers_[i]);
 

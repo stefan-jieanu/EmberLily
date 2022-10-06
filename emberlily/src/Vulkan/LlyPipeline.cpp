@@ -143,12 +143,14 @@ void LlyPipeline::createGraphicsPipeline(
     shaderStages[1].pNext = nullptr;
     shaderStages[1].pSpecializationInfo = nullptr;
 
+    auto bindingDesctriptions = LlyModel::Vertex::getBindingDescriptions();
+    auto atttributeDescriptions = LlyModel::Vertex::getAttributeDescriptions();
     VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertexInputInfo.vertexAttributeDescriptionCount = 0;
-    vertexInputInfo.vertexBindingDescriptionCount = 0;
-    vertexInputInfo.pVertexAttributeDescriptions = nullptr;
-    vertexInputInfo.pVertexBindingDescriptions = nullptr;
+    vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(atttributeDescriptions.size());
+    vertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(bindingDesctriptions.size());;
+    vertexInputInfo.pVertexAttributeDescriptions = atttributeDescriptions.data();
+    vertexInputInfo.pVertexBindingDescriptions = bindingDesctriptions.data();
 
     VkPipelineViewportStateCreateInfo viewportInfo{};
     viewportInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;

@@ -11,7 +11,7 @@
 #include "Vulkan/LlyDevice.hpp"
 #include "Vulkan/LlyPipeline.hpp"
 #include "Vulkan/LlySwapChain.hpp"
-#include <glm/glm.hpp>
+#include "Vulkan/LlyModel.hpp"
 
 namespace ember
 {
@@ -53,6 +53,7 @@ public:
 private:
     static bool initialized;
 
+    void loadModels();
     void createPipelineLayout();
     void createPipeline();
     void createCommandBuffers();
@@ -68,6 +69,7 @@ private:
     std::shared_ptr<LlyPipeline> pipeline_;
     VkPipelineLayout pipelineLayout_;
     std::vector<VkCommandBuffer> commandBuffers_;
+    std::unique_ptr<LlyModel> model_;
 };
 
 } // namespace ember
