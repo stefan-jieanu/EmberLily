@@ -32,6 +32,10 @@ Application::Application(const ApplicationConfig& config)
     createPipelineLayout();
     createPipeline();
     createCommandBuffers();
+
+    // Test glm
+    glm::mat2x2 myMat;
+    EM_LOG_INFO(myMat.length());
 }
 
 Application::~Application()

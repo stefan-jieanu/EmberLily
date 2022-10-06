@@ -11,6 +11,7 @@
 #include "Vulkan/LlyDevice.hpp"
 #include "Vulkan/LlyPipeline.hpp"
 #include "Vulkan/LlySwapChain.hpp"
+#include <glm/glm.hpp>
 
 namespace ember
 {

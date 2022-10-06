@@ -4,3 +4,4 @@ set(VULKAN_SDK_PATH  C:/VulkanSDK/1.3.224.1)
 # Set spdlog build location path
 # set(spdlog_DIR "../third-party/spdlog/build")
 set(SPDLOG_PATH "../third-party/spdlog")
+set(GLM_PATH "../third-party/glm")
