@@ -27,7 +27,7 @@ Application::Application(const ApplicationConfig& config)
     Application::initialized = true;
 
     device_ = std::make_shared<LlyDevice>(window_);
-    swapChain_ = std::make_shared<LlySwapChain>(device_, window_->getExtent());
+    swapChain_ = std::make_unique<LlySwapChain>(device_, window_->getExtent());
 
     loadModels();
     createPipelineLayout();
@@ -85,6 +85,7 @@ bool Application::OnWindowResize(WindowResizeEvent& e)
     }
 
     minimized_ = false;
+    EM_LOG_DEBUG("New window size: {},{}", e.GetWidth(), e.GetHeight());
     
     return false;
 }
@@ -178,41 +179,6 @@ void Application::createCommandBuffers()
 
     VkResult ok = vkAllocateCommandBuffers(device_->device(), &allocInfo, commandBuffers_.data());
     EM_CORE_ASSERT(ok == VK_SUCCESS, "Couldn't create command buffer!");
-
-    for (int i = 0; i < commandBuffers_.size(); i++) {
-        VkCommandBufferBeginInfo beginInfo{};
-        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-
-        ok = vkBeginCommandBuffer(commandBuffers_[i], &beginInfo);
-        EM_CORE_ASSERT(ok == VK_SUCCESS, "Failed to begin recording command buffer!");
-
-        VkRenderPassBeginInfo renderPassInfo{};
-        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderPassInfo.renderPass = swapChain_->getRenderPass();
-        renderPassInfo.framebuffer = swapChain_->getFrameBuffer(i);
-
-        renderPassInfo.renderArea.offset = {0, 0};
-        renderPassInfo.renderArea.extent = swapChain_->getSwapChainExtent();
-
-        std::array<VkClearValue, 2> clearValues{};
-        clearValues[0].color = {0.1f, 0.1f, 0.1f, 0.1f};
-        clearValues[1].depthStencil = {1.0f, 0};
-
-        renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
-        renderPassInfo.pClearValues = clearValues.data();
-
-        vkCmdBeginRenderPass(commandBuffers_[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-        pipeline_->bind(commandBuffers_[i]);
-        // vkCmdDraw(commandBuffers_[i], 3, 1, 0, 0);
-        model_->bind(commandBuffers_[i]);
-        model_->draw(commandBuffers_[i]);
-
-        vkCmdEndRenderPass(commandBuffers_[i]);
-
-        ok = vkEndCommandBuffer(commandBuffers_[i]);
-        EM_CORE_ASSERT(ok == VK_SUCCESS, "Failed to end recording command buffer!");
-    }
 }
 
 void Application::drawFrame()
@@ -223,6 +189,55 @@ void Application::drawFrame()
 
     result = swapChain_->submitCommandBuffers(&commandBuffers_[imageIndex], &imageIndex);
     EM_CORE_ASSERT(result == VK_SUCCESS, "Failed to sbumit command buffer");
+}
+
+void Application::recreateSwapChain()
+{
+    auto extent = window_->getExtent();
+    while (extent.width == 0 || extent.height == 0) {
+        extent = window_->getExtent();
+        glfwWaitEvents();
+    }
+
+    vkDeviceWaitIdle(device_->device());
+    swapChain_ = std::make_unique<LlySwapChain>(device_->device(), extent);
+    createPipeline();
+}
+
+void Application::recordCommandBuffer(int imageIndex)
+{
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+
+    VkResult ok = vkBeginCommandBuffer(commandBuffers_[imageIndex], &beginInfo);
+    EM_CORE_ASSERT(ok == VK_SUCCESS, "Failed to begin recording command buffer!");
+
+    VkRenderPassBeginInfo renderPassInfo{};
+    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    renderPassInfo.renderPass = swapChain_->getRenderPass();
+    renderPassInfo.framebuffer = swapChain_->getFrameBuffer(imageIndex);
+
+    renderPassInfo.renderArea.offset = {0, 0};
+    renderPassInfo.renderArea.extent = swapChain_->getSwapChainExtent();
+
+    std::array<VkClearValue, 2> clearValues{};
+    clearValues[0].color = {0.1f, 0.1f, 0.1f, 0.1f};
+    clearValues[1].depthStencil = {1.0f, 0};
+
+    renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+    renderPassInfo.pClearValues = clearValues.data();
+
+    vkCmdBeginRenderPass(commandBuffers_[imageIndex], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+    pipeline_->bind(commandBuffers_[imageIndex]);
+    // vkCmdDraw(commandBuffers_[i], 3, 1, 0, 0);
+    model_->bind(commandBuffers_[imageIndex]);
+    model_->draw(commandBuffers_[imageIndex]);
+
+    vkCmdEndRenderPass(commandBuffers_[imageIndex]);
+
+    ok = vkEndCommandBuffer(commandBuffers_[imageIndex]);
+    EM_CORE_ASSERT(ok == VK_SUCCESS, "Failed to end recording command buffer!");
 }
 
 } // namespace ember

@@ -58,6 +58,8 @@ private:
     void createPipeline();
     void createCommandBuffers();
     void drawFrame();
+    void recreateSwapChain();
+    void recordCommandBuffer(int imageIndex);
 
     bool minimized_;
 
@@ -65,7 +67,7 @@ private:
     ApplicationState state_;
     std::shared_ptr<LlyWindow> window_;
     std::shared_ptr<LlyDevice> device_;
-    std::shared_ptr<LlySwapChain> swapChain_;
+    std::unique_ptr<LlySwapChain> swapChain_;
     std::shared_ptr<LlyPipeline> pipeline_;
     VkPipelineLayout pipelineLayout_;
     std::vector<VkCommandBuffer> commandBuffers_;

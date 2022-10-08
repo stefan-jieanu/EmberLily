@@ -32,6 +32,8 @@ public:
     inline VkExtent2D getExtent() const { 
         return {static_cast<uint32_t>(data_.width), static_cast<uint32_t>(data_.height)};
     }
+    inline bool wasWindowResized() const { return data_.windowResized; }
+    inline void resetWindowResizedFlag() { data_.windowResized = false; }
 
     // Window attributes
     inline void SetEventCallback(const EventCallbackFn& callback) { data_.eventCallback = callback; }
@@ -47,6 +49,7 @@ private:
         std::string title;
         unsigned int width, height;
         bool VSync;
+        bool windowResized = false;
 
         EventCallbackFn eventCallback;
     } data_;

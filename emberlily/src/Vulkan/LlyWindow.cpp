@@ -25,7 +25,7 @@ LlyWindow::LlyWindow(const std::string& title, int width, int height)
 
     glfwSetErrorCallback(GLFWErrorCallback);
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
     window_ = glfwCreateWindow(
         (int)data_.width,
@@ -38,12 +38,17 @@ LlyWindow::LlyWindow(const std::string& title, int width, int height)
     // setVSync(true);
 
     // Set GLFW callbacks
-    glfwSetWindowSizeCallback(window_, [](GLFWwindow* window, int width, int height)
+    // glfwSetWindowSizeCallback(window_, [](GLFWwindow* window, int width, int height)
+    // Use the framebuffer size callback to make sure the vulkan swap chain resizes when 
+    // the frame buffer is resized, might be different from the window resize.
+    // But we'll just use the framebuffer data as the window size, it should be fine
+    glfwSetFramebufferSizeCallback(window_, [](GLFWwindow* window, int width, int height)
     {
         WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 
         data.width = width;
         data.height = height;
+        data.windowResized = true;
 
         WindowResizeEvent event(width, height);
         data.eventCallback(event);
