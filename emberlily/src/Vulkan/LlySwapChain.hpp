@@ -16,6 +16,8 @@ class LlySwapChain {
   static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
   LlySwapChain(std::shared_ptr<LlyDevice> deviceRef, VkExtent2D windowExtent);
+  LlySwapChain(std::shared_ptr<LlyDevice> deviceRef, VkExtent2D windowExtent, 
+    std::shared_ptr<LlySwapChain> previous);
   ~LlySwapChain();
 
   LlySwapChain(const LlySwapChain &) = delete;
@@ -39,6 +41,7 @@ class LlySwapChain {
   VkResult submitCommandBuffers(const VkCommandBuffer *buffers, uint32_t *imageIndex);
 
  private:
+  void init();
   void createSwapChain();
   void createImageViews();
   void createDepthResources();
@@ -69,6 +72,7 @@ class LlySwapChain {
   VkExtent2D windowExtent;
 
   VkSwapchainKHR swapChain;
+  std::shared_ptr<LlySwapChain> oldSwapChain_;
 
   std::vector<VkSemaphore> imageAvailableSemaphores;
   std::vector<VkSemaphore> renderFinishedSemaphores;

@@ -12,7 +12,22 @@
 namespace ember {
 
 LlySwapChain::LlySwapChain(std::shared_ptr<LlyDevice> deviceRef, VkExtent2D extent)
-    : device{deviceRef}, windowExtent{extent} {
+    : device{deviceRef}, windowExtent{extent} 
+{
+  init();
+}
+
+LlySwapChain::LlySwapChain(std::shared_ptr<LlyDevice> deviceRef, VkExtent2D extent, std::shared_ptr<LlySwapChain> previous)
+    : device{deviceRef}, windowExtent{extent}, oldSwapChain_{previous}
+{
+  init();
+
+  // clean up old swap chain since it's no longer needed
+  oldSwapChain_ = nullptr;
+}
+
+void LlySwapChain::init()
+{
   createSwapChain();
   createImageViews();
   createRenderPass();
@@ -162,7 +177,7 @@ void LlySwapChain::createSwapChain() {
   createInfo.presentMode = presentMode;
   createInfo.clipped = VK_TRUE;
 
-  createInfo.oldSwapchain = VK_NULL_HANDLE;
+  createInfo.oldSwapchain = oldSwapChain_ == nullptr ? VK_NULL_HANDLE : oldSwapChain_->swapChain;
 
   if (vkCreateSwapchainKHR(device->device(), &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
     throw std::runtime_error("failed to create swap chain!");

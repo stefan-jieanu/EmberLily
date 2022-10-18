@@ -27,11 +27,12 @@ Application::Application(const ApplicationConfig& config)
     Application::initialized = true;
 
     device_ = std::make_shared<LlyDevice>(window_);
-    swapChain_ = std::make_unique<LlySwapChain>(device_, window_->getExtent());
+    // swapChain_ = std::make_unique<LlySwapChain>(device_, window_->getExtent());
 
     loadModels();
     createPipelineLayout();
-    createPipeline();
+    // createPipeline();
+    recreateSwapChain();
     createCommandBuffers();
 }
 
@@ -85,7 +86,6 @@ bool Application::OnWindowResize(WindowResizeEvent& e)
     }
 
     minimized_ = false;
-    EM_LOG_DEBUG("New window size: {},{}", e.GetWidth(), e.GetHeight());
     
     return false;
 }
@@ -154,9 +154,12 @@ void Application::createPipelineLayout()
 
 void Application::createPipeline()
 {
+    EM_CORE_ASSERT(swapChain_ != nullptr, "Cannot create pipeline before swap chain");
+    EM_CORE_ASSERT(pipelineLayout_ != nullptr, "Cannot create pipeline before pipeline layout");
+
     PipelineConfigInfo configInfo{};
 
-    LlyPipeline::defaultPipelineConfigInfo(swapChain_->width(), swapChain_->height(), configInfo);
+    LlyPipeline::defaultPipelineConfigInfo(configInfo);
 
     configInfo.renderPass = swapChain_->getRenderPass();
     configInfo.pipelineLayout = pipelineLayout_;
@@ -181,13 +184,37 @@ void Application::createCommandBuffers()
     EM_CORE_ASSERT(ok == VK_SUCCESS, "Couldn't create command buffer!");
 }
 
+void Application::freeCommandBuffers()
+{
+    vkFreeCommandBuffers(
+        device_->device(),
+        device_->getCommandPool(),
+        static_cast<uint32_t>(commandBuffers_.size()),
+        commandBuffers_.data());
+    commandBuffers_.clear();
+}
+
 void Application::drawFrame()
 {
     uint32_t imageIndex;
     auto result = swapChain_->acquireNextImage(&imageIndex);
+
+    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+        recreateSwapChain();
+        return;
+    }
+
     EM_CORE_ASSERT((result != VK_SUCCESS || result != VK_SUBOPTIMAL_KHR), "Not good aquire next image from swap chain");
 
+    recordCommandBuffer(imageIndex);
     result = swapChain_->submitCommandBuffers(&commandBuffers_[imageIndex], &imageIndex);
+
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || window_->wasWindowResized()) {
+        window_->resetWindowResizedFlag();
+        recreateSwapChain();
+        return;
+    }
+    LOG_TRACE("drawing");
     EM_CORE_ASSERT(result == VK_SUCCESS, "Failed to sbumit command buffer");
 }
 
@@ -200,7 +227,16 @@ void Application::recreateSwapChain()
     }
 
     vkDeviceWaitIdle(device_->device());
-    swapChain_ = std::make_unique<LlySwapChain>(device_->device(), extent);
+    if (swapChain_ == nullptr) {
+        swapChain_ = std::make_unique<LlySwapChain>(device_, extent);
+    } else {
+        swapChain_ = std::make_unique<LlySwapChain>(device_, extent, std::move(swapChain_));
+        if (swapChain_->imageCount() != commandBuffers_.size())
+            freeCommandBuffers();
+            createCommandBuffers();
+    }
+
+    // if render pass compatible do nothing else
     createPipeline();
 }
 
@@ -228,6 +264,21 @@ void Application::recordCommandBuffer(int imageIndex)
     renderPassInfo.pClearValues = clearValues.data();
 
     vkCmdBeginRenderPass(commandBuffers_[imageIndex], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+    VkViewport viewport{};
+    viewport.x = 0.0f;
+    viewport.y = 0.0f;
+    viewport.width = static_cast<float>(swapChain_->getSwapChainExtent().width);
+    viewport.height = static_cast<float>(swapChain_->getSwapChainExtent().height);
+    viewport.minDepth = 0.0f;
+    viewport.maxDepth = 1.0f;
+
+    VkRect2D scissor{};
+    scissor.offset = {0, 0};
+    scissor.extent = swapChain_->getSwapChainExtent();
+
+    vkCmdSetViewport(commandBuffers_[imageIndex], 0, 1, &viewport);
+    vkCmdSetScissor(commandBuffers_[imageIndex], 0, 1, &scissor);
 
     pipeline_->bind(commandBuffers_[imageIndex]);
     // vkCmdDraw(commandBuffers_[i], 3, 1, 0, 0);
