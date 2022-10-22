@@ -2,3 +2,6 @@ emberlily/build
 sampleapp/build
 third-party/glm
 third-party/spdlog
+
+# Compiled shaders
+*.spv

@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+
 #include "Asserts.hpp"
 #include "Defines.hpp"
 #include "Vulkan/LlyWindow.hpp"
