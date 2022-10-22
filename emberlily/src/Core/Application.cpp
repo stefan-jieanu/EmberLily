@@ -214,7 +214,7 @@ void Application::drawFrame()
         recreateSwapChain();
         return;
     }
-    LOG_TRACE("drawing");
+
     EM_CORE_ASSERT(result == VK_SUCCESS, "Failed to sbumit command buffer");
 }
 

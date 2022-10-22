@@ -59,6 +59,15 @@ if (NOT SPDLOG_LIB)
 else()
     message(SPDLOG_LIB "Using spdlog lib at: ${SPDLOG_LIB}")
 endif()
+
+# Find glm
+if (DEFINED GLM_PATH)
+  message(STATUS "Using GLM path specified in .env")
+  set(GLM_INCLUDE_DIRS "${GLM_PATH}")
+else()
+  find_package(glm REQUIRED)
+  message(STATUS "Found GLM")
+endif()
  
 include_directories(external)
 
@@ -82,6 +91,7 @@ if (WIN32)
     ${Vulkan_INCLUDE_DIRS}
     ${GLFW_INCLUDE_DIRS}
     ${SPDLOG_INCLUDE_DIRS}
+    ${GLM_INCLUDE_DIRS}
     "../emberlily/src"
     )
 
