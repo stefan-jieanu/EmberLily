@@ -12,7 +12,7 @@
 #include "Vulkan/LlyDevice.hpp"
 #include "Vulkan/LlyPipeline.hpp"
 #include "Vulkan/LlySwapChain.hpp"
-#include "Vulkan/LlyModel.hpp"
+#include "GameObject.hpp"
 
 namespace ember
 {
@@ -54,7 +54,7 @@ public:
 private:
     static bool initialized;
 
-    void loadModels();
+    void loadGameObjects();
     void createPipelineLayout();
     void createPipeline();
     void createCommandBuffers();
@@ -62,6 +62,7 @@ private:
     void drawFrame();
     void recreateSwapChain();
     void recordCommandBuffer(int imageIndex);
+    void renderGameObjects(VkCommandBuffer commandBuffer);
 
     bool minimized_;
 
@@ -73,7 +74,7 @@ private:
     std::shared_ptr<LlyPipeline> pipeline_;
     VkPipelineLayout pipelineLayout_;
     std::vector<VkCommandBuffer> commandBuffers_;
-    std::unique_ptr<LlyModel> model_;
+    std::vector<GameObject> gameObjects_;
 };
 
 } // namespace ember

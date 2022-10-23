@@ -3,11 +3,13 @@
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
+#include <glm/gtc/constants.hpp>
 
 namespace ember
 {
 
 struct SimplePushConstantData {
+    glm::mat2 transform{1.f};
     glm::vec2 offset;
     alignas(16) glm::vec3 color;
 };
@@ -38,7 +40,7 @@ Application::Application(const ApplicationConfig& config)
     device_ = std::make_shared<LlyDevice>(window_);
     // swapChain_ = std::make_unique<LlySwapChain>(device_, window_->getExtent());
 
-    loadModels();
+    loadGameObjects();
     createPipelineLayout();
     // createPipeline();
     recreateSwapChain();
@@ -137,7 +139,7 @@ bool Application::OnMouseScrolled(MouseScrolledEvent& e)
     return false;
 }
 
-void Application::loadModels()
+void Application::loadGameObjects()
 {
     std::vector<LlyModel::Vertex> vertices {
         {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
@@ -145,7 +147,28 @@ void Application::loadModels()
         {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
     };
 
-    model_ = std::make_unique<LlyModel>(device_, vertices);
+    auto model = std::make_shared<LlyModel>(device_, vertices);
+
+    std::vector<glm::vec3> colors{
+        {1.f, .7f, .73f},
+        {1.f, .87f, .73f},
+        {1.f, 1.f, .73f},
+        {.73f, 1.f, .8f},
+        {.73, .88f, 1.f}  //
+    };
+
+    for (auto& color : colors) {
+        color = glm::pow(color, glm::vec3{2.2f});
+    }
+
+    for (int i = 0; i < 40; i++) {
+        auto triangle = GameObject::createGameObject();
+        triangle.model = model;
+        triangle.transform2d.scale = glm::vec2(.5f) + i * 0.025f;
+        triangle.transform2d.rotation = i * glm::pi<float>() * .025f;
+        triangle.color = colors[i % colors.size()];
+        gameObjects_.push_back(std::move(triangle));
+    }
 }
 
 void Application::createPipelineLayout()
@@ -295,29 +318,42 @@ void Application::recordCommandBuffer(int imageIndex)
     vkCmdSetViewport(commandBuffers_[imageIndex], 0, 1, &viewport);
     vkCmdSetScissor(commandBuffers_[imageIndex], 0, 1, &scissor);
 
-    pipeline_->bind(commandBuffers_[imageIndex]);
-    model_->bind(commandBuffers_[imageIndex]);
+    renderGameObjects(commandBuffers_[imageIndex]);
 
-    for (int j = 0; j < 4; j++) {
+    vkCmdEndRenderPass(commandBuffers_[imageIndex]);
+
+    ok = vkEndCommandBuffer(commandBuffers_[imageIndex]);
+    EM_CORE_ASSERT(ok == VK_SUCCESS, "Failed to end recording command buffer!");
+}
+
+void Application::renderGameObjects(VkCommandBuffer commandBuffer)
+{
+    int i = 0;
+    for (auto& obj : gameObjects_) {
+        i += 1;
+        obj.transform2d.rotation =
+            glm::mod<float>(obj.transform2d.rotation + 0.00001f * i, 2.f * glm::pi<float>());
+    }
+
+    pipeline_->bind(commandBuffer);
+
+    for (auto& obj: gameObjects_) {
         SimplePushConstantData push{};
-        push.offset = {0.0f, -0.4f + j * 0.25f};
-        push.color = {0.0f, 0.0f, 0.2f + 0.2f * j};
+        push.offset = obj.transform2d.translation;
+        push.color = obj.color;
+        push.transform = obj.transform2d.mat2();
 
         vkCmdPushConstants(
-            commandBuffers_[imageIndex],
+            commandBuffer,
             pipelineLayout_,
             VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
             0,
             sizeof(SimplePushConstantData),
             &push);
 
-        model_->draw(commandBuffers_[imageIndex]);
+        obj.model->bind(commandBuffer);
+        obj.model->draw(commandBuffer);
     }
-
-    vkCmdEndRenderPass(commandBuffers_[imageIndex]);
-
-    ok = vkEndCommandBuffer(commandBuffers_[imageIndex]);
-    EM_CORE_ASSERT(ok == VK_SUCCESS, "Failed to end recording command buffer!");
 }
 
 } // namespace ember
