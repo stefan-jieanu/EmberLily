@@ -5,3 +5,7 @@ third-party/spdlog
 
 # Compiled shaders
 *.spv
+
+# Added by cargo
+
+/target
