@@ -1,10 +1,11 @@
 use super::surface::Surface;
+use std::rc::Rc;
 
 pub struct Adapter {
     // Wgpu adapter instance
     adapter: wgpu::Adapter,
-    device: wgpu::Device,
-    queue: wgpu::Queue,
+    device: Rc<wgpu::Device>,
+    queue: Rc<wgpu::Queue>,
 }
 
 impl Adapter {
@@ -32,17 +33,17 @@ impl Adapter {
 
         Self {
             adapter,
-            device,
-            queue,
+            device: Rc::new(device),
+            queue: Rc::new(queue),
         }
     }
 
-    pub fn device(&self) -> &wgpu::Device {
-        &self.device
+    pub fn device(&self) -> Rc<wgpu::Device> {
+        Rc::clone(&self.device)
     }
 
-    pub fn queue(&self) -> &wgpu::Queue {
-        &self.queue
+    pub fn queue(&self) -> Rc<wgpu::Queue> {
+        Rc::clone(&self.queue)
     }
 
     pub fn adapter(&self) -> &wgpu::Adapter {

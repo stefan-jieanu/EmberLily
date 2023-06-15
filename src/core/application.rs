@@ -1,11 +1,12 @@
 use crate::core::{adapter::Adapter, surface::Surface};
-use crate::renderer::{self, Renderer};
+use crate::renderer::{RenderPipeline, Renderer};
 
 pub struct Application {
     window: winit::window::Window,
     surface: Surface,
     adapter: Adapter,
-    // renderer: Renderer,
+    renderer: Renderer,
+    pipeline: RenderPipeline,
 }
 
 impl Application {
@@ -13,14 +14,14 @@ impl Application {
         log::trace!("Started application.");
 
         let wgpu_instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-            backends: wgpu::Backends::DX12,
+            backends: wgpu::Backends::VULKAN,
             dx12_shader_compiler: Default::default(),
         });
 
         // # Safety
         // The surface needs to live as long as the window that created it.
         // let surface = unsafe { wgpu_instance.create_surface(&window) }.unwrap();
-        let surface = Surface::new(&wgpu_instance, &window);
+        let mut surface = Surface::new(&wgpu_instance, &window);
         let adapter = Adapter::new(&wgpu_instance, &surface).await;
 
         surface.configure(
@@ -28,13 +29,20 @@ impl Application {
             (window.inner_size().width, window.inner_size().height),
         );
 
-        // let renderer = Renderer::new(adapter.device());
+        let shader = adapter
+            .device()
+            .create_shader_module(wgpu::include_wgsl!("../shader.wgsl"));
+
+        let pipeline = RenderPipeline::new(&adapter.device(), surface.config(), &shader);
+
+        let renderer = Renderer::new(adapter.device(), adapter.queue());
 
         Self {
             window,
             surface,
             adapter,
-            // renderer,
+            renderer,
+            pipeline,
         }
     }
 
@@ -57,6 +65,8 @@ impl Application {
     pub fn update(&mut self) {}
 
     pub fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+        self.renderer
+            .flush(self.surface.output_texture()?, &self.pipeline);
         Ok(())
     }
 
