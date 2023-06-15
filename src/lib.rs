@@ -1,10 +1,11 @@
 mod core;
+mod renderer;
 use crate::core::*;
 use winit::event::{ElementState, Event, KeyboardInput, VirtualKeyCode, WindowEvent};
 use winit::event_loop::ControlFlow;
 
 pub async fn run() {
-    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("trace")).init();
+    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("error")).init();
 
     let event_loop: winit::event_loop::EventLoop<()> = winit::event_loop::EventLoop::new();
     let window_builder: winit::window::WindowBuilder = Default::default();
@@ -17,25 +18,50 @@ pub async fn run() {
         .build(&event_loop)
         .expect("Could not create window!");
 
-    let application: Application = Application::new();
+    let mut application: Application = Application::new(window).await;
 
     event_loop.run(move |event, _, control_flow| match event {
         Event::WindowEvent {
             ref event,
             window_id,
-        } if window_id == window.id() => match event {
-            WindowEvent::CloseRequested
-            | WindowEvent::KeyboardInput {
-                input:
-                    KeyboardInput {
-                        state: ElementState::Pressed,
-                        virtual_keycode: Some(VirtualKeyCode::Escape),
+        } if window_id == application.window().id() => {
+            if !application.input(event) {
+                match event {
+                    WindowEvent::CloseRequested
+                    | WindowEvent::KeyboardInput {
+                        input:
+                            KeyboardInput {
+                                state: ElementState::Pressed,
+                                virtual_keycode: Some(VirtualKeyCode::Escape),
+                                ..
+                            },
                         ..
-                    },
-                ..
-            } => *control_flow = ControlFlow::Exit,
-            _ => {}
-        },
+                    } => *control_flow = ControlFlow::Exit,
+
+                    WindowEvent::Resized(physical_size) => application.resize(*physical_size),
+                    WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
+                        application.resize(**new_inner_size);
+                    }
+
+                    _ => {}
+                }
+            }
+        }
+
+        Event::RedrawRequested(window_id) if window_id == application.window().id() => {
+            application.update();
+            match application.render() {
+                Ok(_) => {}
+                // Reconfigure the surface if lost
+                Err(wgpu::SurfaceError::Lost) => {
+                    application.resize(application.window().inner_size())
+                }
+                // The system is out of memory, we should probably quit
+                Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
+                // All other errors (Outdated, Timeout) should be resolved by the next frame
+                Err(e) => eprintln!("{:?}", e),
+            }
+        }
         _ => {}
     });
 }
