@@ -1,6 +1,6 @@
-use std::rc::Rc;
+use std::{collections::VecDeque, rc::Rc};
 
-use super::RenderPipeline;
+use super::{RenderPipeline, Sprite};
 
 pub struct Renderer {
     device: Rc<wgpu::Device>,
@@ -12,8 +12,6 @@ impl Renderer {
         Self { device, queue }
     }
 
-    pub fn submit(&mut self) {}
-
     pub fn flush(&mut self, output: wgpu::SurfaceTexture, pipeline: &RenderPipeline) {
         let view = output
             .texture
@@ -24,6 +22,7 @@ impl Renderer {
                 label: Some("Render Encoder"),
             });
 
+        // for s in sprites.iter() {
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("Render pass"),
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
@@ -43,9 +42,13 @@ impl Renderer {
         });
 
         render_pass.set_pipeline(pipeline.pipeline());
-        render_pass.draw(0..3, 0..1);
+        // render_pass.set_vertex_buffer(0, sprite.vertex_buffer().slice(..));
+        // render_pass.set_index_buffer(sprite.index_buffer().slice(..), wgpu::IndexFormat::Uint16);
+        render_pass.draw(0..Sprite::NUM_VERTICES, 0..1);
+        // render_pass.draw_indexed(0..Sprite::NUM_INDICES, 0, 0..1);
 
         drop(render_pass);
+        // }
 
         self.queue.submit(std::iter::once(encoder.finish()));
         output.present();

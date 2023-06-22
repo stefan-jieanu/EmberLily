@@ -5,7 +5,7 @@ use winit::event::{ElementState, Event, KeyboardInput, VirtualKeyCode, WindowEve
 use winit::event_loop::ControlFlow;
 
 pub async fn run() {
-    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("error")).init();
+    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
 
     let event_loop: winit::event_loop::EventLoop<()> = winit::event_loop::EventLoop::new();
     let window_builder: winit::window::WindowBuilder = Default::default();

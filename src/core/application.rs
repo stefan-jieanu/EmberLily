@@ -1,5 +1,7 @@
+use std::rc::Rc;
+
 use crate::core::{adapter::Adapter, surface::Surface};
-use crate::renderer::{RenderPipeline, Renderer};
+use crate::renderer::{RenderPipeline, RenderResource, Renderer, Sprite};
 
 pub struct Application {
     window: winit::window::Window,
@@ -7,6 +9,8 @@ pub struct Application {
     adapter: Adapter,
     renderer: Renderer,
     pipeline: RenderPipeline,
+    // render_res: RenderResource,
+    // sprite: Sprite,
 }
 
 impl Application {
@@ -37,12 +41,17 @@ impl Application {
 
         let renderer = Renderer::new(adapter.device(), adapter.queue());
 
+        // let render_res = RenderResource::new(adapter.device(), adapter.queue());
+        // let sprite = render_res.sprite([1.0, 0.3, 0.7]);
+
         Self {
             window,
             surface,
             adapter,
             renderer,
             pipeline,
+            // render_res,
+            // sprite,
         }
     }
 
