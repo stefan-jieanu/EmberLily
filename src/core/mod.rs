@@ -6,13 +6,19 @@ use winit::{
     event_loop::{ControlFlow, EventLoop},
 };
 
-use crate::vulkan::{adapter::Adapter, surface::Surface, VkInstance};
+use crate::vulkan::{
+    adapter::{self, Adapter},
+    surface::Surface,
+    swapchain::SwapChain,
+    VkInstance,
+};
 
 pub struct EmberLily {
     window: Window,
     vk_instance: VkInstance,
-    device: Adapter,
+    adapter: Adapter,
     surface: Surface,
+    swapchain: SwapChain,
 }
 
 impl EmberLily {
@@ -20,13 +26,15 @@ impl EmberLily {
         let window = Window::new(event_loop);
         let vk_instance = VkInstance::new();
         let surface = Surface::new(&vk_instance, &window);
-        let device = Adapter::new(&vk_instance, &surface);
+        let adapter = Adapter::new(&vk_instance, &surface);
+        let swapchain = SwapChain::new(&vk_instance, &adapter, &surface);
 
         Self {
             window,
             vk_instance,
-            device,
+            adapter,
             surface,
+            swapchain,
         }
     }
 

@@ -1,5 +1,6 @@
 pub mod adapter;
 pub mod surface;
+pub mod swapchain;
 mod utility;
 
 use ash::vk;
@@ -101,7 +102,6 @@ impl VkInstance {
 
 impl Drop for VkInstance {
     fn drop(&mut self) {
-        println!("I am debuggin");
         unsafe {
             if VALIDATION.is_enable {
                 self.debug_utils_loader
