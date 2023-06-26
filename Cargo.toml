@@ -10,7 +10,7 @@ winit = "0.28.6"
 env_logger = "0.8"
 log = "0.4"
 cgmath = "0.18"
-wgpu = "0.15"
+wgpu = {version = "0.16.1", features = ["spirv"]}
 pollster = "0.2"
 bytemuck = {version = "1.12", features = ["derive"]}
 image = {version = "0.24.0", default-features = false, features = ["png"]}
