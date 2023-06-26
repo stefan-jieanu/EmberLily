@@ -24,7 +24,7 @@ impl Vertex {
     }
 }
 
-pub const VERTICES: &[Vertex] = &[
+pub static VERTICES: &'static [Vertex] = &[
     Vertex {
         position: [-0.5, 0.5, 0.0],
         color: [1.0, 0.0, 0.0],
@@ -43,7 +43,7 @@ pub const VERTICES: &[Vertex] = &[
     },
 ];
 
-pub const INDICES: &[u16] = &[0, 1, 2, 2, 3, 1];
+pub const INDICES: &'static [u16] = &[0, 1, 2, 2, 3, 0];
 
 pub struct Sprite {
     vertex_buffer: wgpu::Buffer,

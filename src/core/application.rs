@@ -9,8 +9,8 @@ pub struct Application {
     adapter: Adapter,
     renderer: Renderer,
     pipeline: RenderPipeline,
-    // render_res: RenderResource,
-    // sprite: Sprite,
+    render_res: RenderResource,
+    sprite: Sprite,
 }
 
 impl Application {
@@ -37,12 +37,12 @@ impl Application {
             .device()
             .create_shader_module(wgpu::include_wgsl!("../shader.wgsl"));
 
-        let pipeline = RenderPipeline::new(&adapter.device(), surface.config(), &shader);
+        let pipeline = RenderPipeline::new(adapter.device(), surface.config(), &shader);
 
         let renderer = Renderer::new(adapter.device(), adapter.queue());
 
-        // let render_res = RenderResource::new(adapter.device(), adapter.queue());
-        // let sprite = render_res.sprite([1.0, 0.3, 0.7]);
+        let render_res = RenderResource::new(adapter.device(), adapter.queue());
+        let sprite = render_res.sprite([1.0, 0.3, 0.7]);
 
         Self {
             window,
@@ -50,8 +50,8 @@ impl Application {
             adapter,
             renderer,
             pipeline,
-            // render_res,
-            // sprite,
+            render_res,
+            sprite,
         }
     }
 
@@ -75,7 +75,7 @@ impl Application {
 
     pub fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
         self.renderer
-            .flush(self.surface.output_texture()?, &self.pipeline);
+            .flush(self.surface.output_texture()?, &self.pipeline, &self.sprite);
         Ok(())
     }
 

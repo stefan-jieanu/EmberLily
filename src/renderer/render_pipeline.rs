@@ -1,10 +1,12 @@
+use std::rc::Rc;
+
 pub struct RenderPipeline {
     pipeline: wgpu::RenderPipeline,
 }
 
 impl RenderPipeline {
     pub fn new(
-        device: &wgpu::Device,
+        device: Rc<wgpu::Device>,
         surface_config: &wgpu::SurfaceConfiguration,
         shader: &wgpu::ShaderModule,
     ) -> Self {
@@ -20,7 +22,7 @@ impl RenderPipeline {
             vertex: wgpu::VertexState {
                 module: &shader,
                 entry_point: "vs_main",
-                buffers: &[],
+                buffers: &[super::render_resource::Vertex::desc()],
             },
             fragment: Some(wgpu::FragmentState {
                 module: &shader,

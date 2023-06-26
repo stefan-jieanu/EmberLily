@@ -12,7 +12,12 @@ impl Renderer {
         Self { device, queue }
     }
 
-    pub fn flush(&mut self, output: wgpu::SurfaceTexture, pipeline: &RenderPipeline) {
+    pub fn flush(
+        &mut self,
+        output: wgpu::SurfaceTexture,
+        pipeline: &RenderPipeline,
+        sprite: &Sprite,
+    ) {
         let view = output
             .texture
             .create_view(&wgpu::TextureViewDescriptor::default());
@@ -42,10 +47,10 @@ impl Renderer {
         });
 
         render_pass.set_pipeline(pipeline.pipeline());
-        // render_pass.set_vertex_buffer(0, sprite.vertex_buffer().slice(..));
-        // render_pass.set_index_buffer(sprite.index_buffer().slice(..), wgpu::IndexFormat::Uint16);
-        render_pass.draw(0..Sprite::NUM_VERTICES, 0..1);
-        // render_pass.draw_indexed(0..Sprite::NUM_INDICES, 0, 0..1);
+        render_pass.set_vertex_buffer(0, sprite.vertex_buffer().slice(..));
+        render_pass.set_index_buffer(sprite.index_buffer().slice(..), wgpu::IndexFormat::Uint16);
+        // render_pass.draw(0..Sprite::NUM_VERTICES, 0..1);
+        render_pass.draw_indexed(0..Sprite::NUM_INDICES, 0, 0..1);
 
         drop(render_pass);
         // }
