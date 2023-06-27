@@ -14,3 +14,4 @@ wgpu = {version = "0.16.1", features = ["spirv"]}
 pollster = "0.2"
 bytemuck = {version = "1.12", features = ["derive"]}
 image = {version = "0.24.0", default-features = false, features = ["png"]}
+anyhow = "1.0"
