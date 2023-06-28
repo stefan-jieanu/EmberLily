@@ -13,5 +13,18 @@ cgmath = "0.18"
 wgpu = {version = "0.16.1", features = ["spirv"]}
 pollster = "0.2"
 bytemuck = {version = "1.12", features = ["derive"]}
-image = {version = "0.24.0", default-features = false, features = ["png"]}
+image = {version = "0.24.0", default-features = false, features = ["png", "jpeg"]}
 anyhow = "1.0"
+tobj = { version = "3.2.1", features = [
+    "async",
+]}
+cfg-if = "0.1"
+
+[build-dependencies]
+anyhow = "1.0"
+fs_extra = "1.2"
+glob = "0.3"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+# Other dependencies
+reqwest = { version = "0.11" }
