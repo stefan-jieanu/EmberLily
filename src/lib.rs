@@ -6,7 +6,7 @@ mod texture;
 use cgmath::prelude::*;
 use model::{DrawModel, Model, Vertex};
 
-use wgpu::{util::DeviceExt, TextureUsages};
+use wgpu::util::DeviceExt;
 use winit::{
     event::*,
     event_loop::{ControlFlow, EventLoop},
@@ -75,7 +75,7 @@ impl InstanceRaw {
     }
 }
 
-const NUM_INSTANCES_PER_ROW: u32 = 10;
+const NUM_INSTANCES_PER_ROW: u32 = 100;
 const INSTANCE_DISPLACEMENT: cgmath::Vector3<f32> = cgmath::Vector3::new(
     NUM_INSTANCES_PER_ROW as f32 * 0.5,
     0.0,
@@ -91,10 +91,10 @@ struct State {
     render_pipeline: wgpu::RenderPipeline,
     // vertex_buffer: wgpu::Buffer,
     // index_buffer: wgpu::Buffer,
-    num_indices: u32,
+    // num_indices: u32,
     window: Window,
-    diffuse_bind_group: wgpu::BindGroup,
-    diffuse_texture: texture::Texture,
+    // diffuse_bind_group: wgpu::BindGroup,
+    // diffuse_texture: texture::Texture,
     camera: camera::Camera,
     camera_uniform: camera::CameraUniform,
     camera_buffer: wgpu::Buffer,
@@ -223,7 +223,7 @@ impl State {
             aspect: config.width as f32 / config.height as f32,
             fovy: 45.0,
             znear: 0.1,
-            zfar: 100.0,
+            zfar: 200.0,
         };
 
         let mut camera_uniform = camera::CameraUniform::new();
@@ -378,10 +378,10 @@ impl State {
             render_pipeline,
             // vertex_buffer,
             // index_buffer,
-            num_indices,
+            // num_indices,
             window,
-            diffuse_bind_group,
-            diffuse_texture,
+            // diffuse_bind_group,
+            // diffuse_texture,
             camera,
             camera_uniform,
             camera_buffer,
